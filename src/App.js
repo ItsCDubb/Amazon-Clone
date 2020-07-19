@@ -1,10 +1,42 @@
-import React from "react";
-import "./App.css";
-import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
-import Header from "./components/Header/Header";
+import React, { useEffect } from "react";
 import Home from "./components/Home/Home";
+import { auth } from "./components/firebase";
+import Login from "./components/Login/Login";
+import Header from "./components/Header/Header";
+import Checkout from "./components/Checkout/Checkout";
+import { useStateValue } from "./components/StateProvider";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import "./App.css";
 
 function App() {
+  const [{ user }, dispatch] = useStateValue();
+  // useEffect <<<<<< POWERFUL
+  // Piece of code which runs based on a given condition
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
+        // The user is logged in...
+
+        dispatch({
+          type: "SET_USER",
+          user: authUser,
+        });
+      } else {
+        // The user is logged out
+
+        dispatch({
+          type: "SET_USER",
+          user: null,
+        });
+      }
+    });
+    return () => {
+      // Any cleanup operations go in here...
+      unsubscribe();
+    };
+  }, []);
+
+  console.log("USER IS >>> ", user);
   return (
     <Router>
       <div className="app">
@@ -12,11 +44,11 @@ function App() {
           {/* Checkout page */}
           <Route path="/checkout">
             <Header />
-            <h1>Checkout</h1>
+            <Checkout />
           </Route>
           {/* Login page */}
           <Route path="/login">
-            <h1>Login</h1>
+            <Login />
           </Route>
           {/* The is the default route */}
           {/* Home page */}
